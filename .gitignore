@@ -2,3 +2,6 @@ analysis/lakes
 analysis/nhd
 analysis/state-borders
 analysis/lakes.qgz
+analysis/lake-compactor.py
+analysis/hillshade
+graphics

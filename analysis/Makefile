@@ -121,6 +121,7 @@ state-borders/wi-wogl.shp: state-borders/wi.shp lakes/great-lakes.shp
 	mapshaper \
 		-i state-borders/wi.shp \
 		-erase lakes/great-lakes.shp \
+		-clean \
 		-o $@ format=shapefile force
 
 state-borders/mn-wogl.shp: state-borders/mn.shp lakes/great-lakes.shp
@@ -128,6 +129,7 @@ state-borders/mn-wogl.shp: state-borders/mn.shp lakes/great-lakes.shp
 	mapshaper \
 		-i state-borders/mn.shp \
 		-erase lakes/great-lakes.shp \
+		-clean \
 		-o $@ format=shapefile force
 
 # Table version of the lakes
@@ -188,3 +190,44 @@ surface-area:
 #     Total:  218,490.50 (or 218,490)
 #     Lakes:   11,782.40 (or 11,792)
 #      Pct.:        5.4% (or 5.4%)
+
+
+# For Graphics
+
+lakes/for-display.shp: lakes/wi-wogl.shp lakes/mn-wogl.shp
+	mkdir -p $(dir $@)
+	mapshaper \
+		-i $^ combine-files \
+		-merge-layers \
+		-filter 'area_acres >= 10' \
+		-clean \
+		-o $@ format=shapefile force
+
+state-borders/combined.shp: state-borders/wi-wogl.shp state-borders/mn-wogl.shp
+	mkdir -p $(dir $@)
+	mapshaper \
+		-i $^ combine-files \
+		-merge-layers \
+		-dissolve \
+		-simplify 1% \
+		-clean \
+		-o $@ format=shapefile force
+
+state-borders/inner-line.shp: state-borders/wi-wogl.shp state-borders/mn-wogl.shp
+	mkdir -p $(dir $@)
+	mapshaper \
+		-i $^ combine-files \
+		-merge-layers \
+		-simplify 1% \
+		-innerlines \
+		-o $@ format=shapefile force
+
+lakes/for-packing.shp: lakes/wi-wogl.shp
+	mkdir -p $(dir $@)
+	mapshaper \
+		-i $? \
+		-filter 'area_acres >= 10' \
+		-clean \
+		-proj '+proj=tmerc +lat_0=0 +lon_0=-90 +k=0.9996 +x_0=520000 +y_0=-4480000 +ellps=GRS80 +units=m +no_defs' \
+		-each 'width = this.width, height = this.height' \
+		-o $@ format=shapefile force
